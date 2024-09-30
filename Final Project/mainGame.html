@@ -48,7 +48,6 @@
                 <option value="music2">Music 2</option>
                 <option value="music3">Music 3</option>
                 <option value="music4">Music 4</option>
-                <option value="music5">Music 5</option>
             </select>
             <button class="button" id="play-button" onclick="playSelectedMusic()">Play</button>
             <button class="button" id="stop-button" onclick="stopBackgroundMusic()">Stop</button>
@@ -171,14 +170,11 @@
         }
     });
 
-
-    // Check if mouse is inside the game container
     function isInsideGameContainer(x, y) {
         let rect = gameContainer.getBoundingClientRect();
         return (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
     }
 
-    // Update average reaction time and accuracy function
     function updateAverageReactionTime(reactionTime, hit) {
         totalReactionTime += reactionTime;
         let averageReactionTime = totalHits !== 0 ? totalReactionTime / totalHits : 0;
@@ -193,14 +189,11 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
 
     }
     
-
-    // Function to calculate Hit to Miss ratio
     function calculateHitToMissRatio() {
         let hitToMissRatio = totalHits + " : " + (totalClicks - totalHits);
         return hitToMissRatio;
     }
 
-    // Click event for target
     function targetClickHandler(event) {
         let clickX = event.clientX - target.getBoundingClientRect().left;
         let clickY = event.clientY - target.getBoundingClientRect().top;
@@ -216,16 +209,12 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
         resetTarget();
     }
 
-
-
-    // Click event for game container (missed click)
     function gameContainerClickHandler(event) {
         if (isGameStarted && event.target === gameContainer) {
-            updateScore(-1); // lower score if clicked outside the target
+            updateScore(-1);
             updateAverageReactionTime(0, false);
         }
     }
-           // Function to display the red X at the specified coordinates
            function displayMissedClick(x, y) {
             let missedClick = document.getElementById('missed-click');
             missedClick.style.position = 'absolute';
@@ -235,22 +224,15 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
             missedClick.style.color = 'red';
             missedClick.style.fontSize = '24px';
             missedClick.style.transition = 'opacity 1s';
-            // Fade out after 3 seconds
             setTimeout(() => {
                 missedClick.style.opacity = '0';
             }, 3000);
             }
-        // Event listener for clicks on the game container
         document.getElementById('game-container').addEventListener('click', function(event) {
-            // Check if the game is currently running
             if (isGameStarted) {
-                // Check if the click is outside the target area
                 if (event.target === gameContainer) {
-                    // Display the red X at the click coordinates
                     displayMissedClick(event.clientX, event.clientY);
-                    // Update the score (deduct 1 point for a missed click)
                     updateScore(-1);
-                    // Update the average reaction time and accuracy
                     updateAverageReactionTime(0, false);
                 }
             }
@@ -319,11 +301,9 @@ function startGame() {
     // Check if Dark Mode is enabled
     if (document.body.classList.contains('dark-mode')) {
         darkModeButton.textContent = 'Light Mode';
-        // Save the preference to localStorage
         localStorage.setItem('theme', 'dark');
     } else {
         darkModeButton.textContent = 'Dark Mode';
-        // Save the preference to localStorage
         localStorage.setItem('theme', 'light');
     }
 }
@@ -447,7 +427,6 @@ function endGame() {
         window.location.href = "./firstaimtrainer.html"
     }
 
-// Function to open the audio menu modal
 function openAudioMenu() {
     const audioMenuModal = document.getElementById("audio-menu-modal");
     
@@ -456,17 +435,14 @@ function openAudioMenu() {
     audioMenuModal.style.zIndex = 9999;
 }
 
-// Function to close the audio menu modal
 function closeAudioMenu() {
     document.getElementById("audio-menu-modal").style.display = "none";
 }
 
-// Function to play selected background music
 function playSelectedMusic() {
     let selectedMusic = document.getElementById("music-select").value;
     let audio;
 
-    // Check if the same music is already playing
     if (window.currentAudio && window.currentAudio.src.includes(selectedMusic)) {
         document.getElementById("status-message").textContent = "Already playing: " + selectedMusic;
         return;
@@ -483,8 +459,8 @@ function playSelectedMusic() {
         audio = new Audio('./Audio/Music/gameaudio3.mp3');
     } else if (selectedMusic === "music4") {
         audio = new Audio('./Audio/Music/gameaudio4.mp3');
-    } else if (selectedMusic === "music5") {
-        audio = new Audio('./Audio/Music/gameaudio5.mp3');
+   /* } else if (selectedMusic === "music5") { !! doesn't exist yet !!
+        audio = new Audio('./Audio/Music/gameaudio5.mp3'); */
     }
 
     if (audio) {
@@ -514,8 +490,8 @@ function showChangeLogs() {
 function stopBackgroundMusic() {
     if (window.currentAudio) {
         window.currentAudio.pause();
-        window.currentAudio.currentTime = 0; // Reset to start
-        window.currentAudio = null; // Clear the audio instance
+        window.currentAudio.currentTime = 0;
+        window.currentAudio = null;
     }
 }
 
@@ -541,7 +517,7 @@ versionHistoryModal.innerHTML = `
         <h2 style="color: black;">Version History</h2>
         <div style="display: flex; flex-direction: column; gap: 10px;">
             <span style="color: white; background-color: #333; padding: 10px 20px; border-radius: 5px; text-align: center; cursor: default;">
-                Current Version: Version 2.0.1
+                Current Version: Version 2.0.2
             </span>
             <button onclick="window.location.href='path/to/version1.5.html'" style="color: white;">Version 1.5: First Working Version</button>
             <button onclick="window.location.href='./firstaimtrainer.html'" style="color: white;">Version 1.0: Development Build</button>
@@ -561,14 +537,17 @@ function closeVersionHistory() {
     }
 }
 const changeLogs = [
-    "Version 2.0.1 Release",
+    "Version 2.0 Release",
     "Added everyone's favorite, ROUNDED CORNERS!!!",
     "Completely redid the Audio Menu and added refreshed songs",
     "Added a Version History, so you can play different versions of the game",
     "Completely redid the buttons styles, enjoy a new styling of the game.",
-    "Dark mode will now save on page refresh and open, you're welcome.",
     "Improved performance and killed a lot of bugs.",
-    "The Chris Trainer has been temporarily removed so version 2 can be done."
+    "The Chris Trainer has been temporarily removed so version 2 of it can be done.",
+    "Dark mode will now save on page refresh and open, you're welcome.",
+    "Fixed text being gray and hard to see when you have dark mode enabled.",
+    "Fixed the reaction time equation not being accurate at all.",
+    "Added game audios 3 and 4"
 ];
 
 // Function to open change logs modal
@@ -576,17 +555,13 @@ function showChangeLogs() {
     const modal = document.getElementById("change-logs-modal");
     const changeLogsList = document.getElementById("change-logs-list");
     
-    // Clear existing change logs
     changeLogsList.innerHTML = "";
 
-    // Create a <ul> element for the list
     const ul = document.createElement("ul");
     
-    // Populate change logs
     changeLogs.forEach((log, index) => {
         const li = document.createElement("li");
-        
-        // Check if this is the version release
+
         if (index === 0) {
             li.innerHTML = `<strong style="font-size: 1.2em; color: Red;">${log}</strong>`;
         } else {
@@ -602,7 +577,6 @@ function showChangeLogs() {
     modal.style.zIndex = "1001";
 }
 
-// Function to close change logs modal
 function closeChangeLogs() {
     const modal = document.getElementById("change-logs-modal");
     modal.style.display = "none";
