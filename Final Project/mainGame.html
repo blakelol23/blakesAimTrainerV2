@@ -81,13 +81,13 @@
     </div>
 
     <div id="stats">
-        <p class="game-over">Game Over!</p>
-        <p class="final-stats">Accuracy: <span id="final-accuracy">---</span>%</p>
-        <p class="final-stats">Reaction time: <span id="final-reaction-time">---</span> ms</p>
-        <p class="final-stats">Hits: <span id="final-hits">---</span></p>
-        <p class="final-stats">Misses: <span id="final-misses">---</span></p>
-        <p class="final-stats">Final Score: <span id="final-score">---</span></p>
-        <p class="final-stats">Hit to Miss Ratio: <span id="final-hit-to-miss">---</span></p>
+        <p class="game-over" style="color: red">Game Over!</p>
+        <p class="final-stats" style="color: black">Accuracy: <span id="final-accuracy" style="color: black">---</span>%</p>
+        <p class="final-stats" style="color: black">Reaction time: <span id="final-reaction-time" style="color: black">---</span> ms</p>
+        <p class="final-stats" style="color: black">Hits: <span id="final-hits" style="color: black">---</span></p>
+        <p class="final-stats" style="color: black">Misses: <span id="final-misses" style="color: black">---</span></p>
+        <p class="final-stats" style="color: black">Final Score: <span id="final-score" style="color: black">---</span></p>
+        <p class="final-stats" style="color: black">Hit to Miss Ratio: <span id="final-hit-to-miss" style="color: black">---</span></p>
     </div>
 
 <!-- Tutorial Modal -->
@@ -200,35 +200,6 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
         return hitToMissRatio;
     }
 
-    // End game function
-    function endGame() {
-        clearInterval(timerInterval); // Stop the timer
-        isGameStarted = false;
-        // Remove click event listeners
-        target.removeEventListener('click', targetClickHandler);
-        gameContainer.removeEventListener('click', gameContainerClickHandler);
-
-        // Hide target
-        target.style.display = 'none';
-
-        // Hide stats container
-        statsContainer.style.display = 'none';
-
-        // Show game over stats
-        stats.style.display = 'block';
-
-        // Calculate accuracy
-        let accuracy = (totalHits / totalClicks) * 100;
-
-        // Display final stats
-        document.getElementById('final-accuracy').textContent = accuracy.toFixed(2);
-        document.getElementById('final-reaction-time').textContent = averageReactionTimeDisplay.textContent;
-        document.getElementById('final-hits').textContent = totalHits;
-        document.getElementById('final-misses').textContent = totalClicks - totalHits;
-        document.getElementById('final-score').textContent = score;
-        document.getElementById('final-hit-to-miss').textContent = calculateHitToMissRatio();
-    }
-
     // Click event for target
     function targetClickHandler(event) {
         let clickX = event.clientX - target.getBoundingClientRect().left;
@@ -305,7 +276,7 @@ function startGame() {
         reactionCount = 0;
         totalClicks = 0;
         totalHits = 0;
-        timerDisplay.textContent = '60';
+        timerDisplay.textContent = '1';
         timerInterval = setInterval(updateTimer, 1000);
         statsContainer.style.display = 'block';
         stats.style.display = 'none';
@@ -386,36 +357,37 @@ function setInitialTheme() {
 window.onload = setInitialTheme;
 
     // End game function
-    function endGame() {
-        clearInterval(timerInterval);
-        isGameStarted = false;
-        // Remove click event listeners
-        target.removeEventListener('click', targetClickHandler);
-        gameContainer.removeEventListener('click', gameContainerClickHandler);
+ // End game function
+function endGame() {
+    clearInterval(timerInterval);
+    isGameStarted = false;
 
-        // Hide target
-        target.style.display = 'none';
+    // Remove click event listeners
+    target.removeEventListener('click', targetClickHandler);
+    gameContainer.removeEventListener('click', gameContainerClickHandler);
 
-        // Hide stats container
-        statsContainer.style.display = 'none';
+    // Hide target
+    target.style.display = 'none';
 
-        // Show game over stats
-        stats.style.display = 'block';
+    // Hide stats container
+    statsContainer.style.display = 'none';
 
-        // Calculate accuracy
-        let accuracy = (totalHits / totalClicks) * 100;
+    // Calculate final stats
+    let finalAccuracy = (totalHits / totalClicks) * 100;
+    let finalReactionTime = totalHits !== 0 ? totalReactionTime / totalHits : 0;
+    let hitToMissRatio = calculateHitToMissRatio();
 
-        // Save game data
-        saveGameData(score, accuracy.toFixed(2), averageReactionTimeDisplay.textContent, totalHits, totalClicks);
+    // Display final stats
+    document.getElementById('final-accuracy').textContent = finalAccuracy.toFixed(2);
+    document.getElementById('final-reaction-time').textContent = finalReactionTime.toFixed(2) + " ms";
+    document.getElementById('final-hits').textContent = totalHits;
+    document.getElementById('final-misses').textContent = totalClicks - totalHits;
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('final-hit-to-miss').textContent = hitToMissRatio;
 
-        // Display final stats
-        document.getElementById('final-accuracy').textContent = accuracy.toFixed(2);
-        document.getElementById('final-reaction-time').textContent = averageReactionTimeDisplay.textContent;
-        document.getElementById('final-hits').textContent = totalHits;
-        document.getElementById('final-misses').textContent = totalClicks - totalHits;
-        document.getElementById('final-score').textContent = score;
-        document.getElementById('final-hit-to-miss').textContent = calculateHitToMissRatio();
-    }
+    // Show game over screen and stats
+    document.getElementById('stats').style.display = 'block';
+}
 
         // Function to open the size modal
         function openSizeModal() {
