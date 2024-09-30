@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="AimTrainer.ico">
+<title>Blake's Aim Trainer V2</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <p id="solution"></p>
+    <div id="error-container"></div>
+    <div id="missed-click"></div>
+
+<!-- Size Modal -->
+<div id="size-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeSizeModal()">&times;</span>
+        <h2>Change Size</h2>
+        <label for="width-input" style="color: black;">Width:</label>
+        <input type="number" id="width-input" placeholder="Enter width" value="500" min="300" max="800">
+        <div>
+            <label for="height-input" style="color: black;">Height:</label>
+            <input type="number" id="height-input" placeholder="Enter height" value="400" min="200" max="500">
+        </div>
+        <p><button onclick="changeSize()">Apply Size</button></p>
+    </div>
+</div>
+
+<!-- Change Logs Modal -->
+<div id="change-logs-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeChangeLogs()">&times;</span>
+        <h2 style="color: black;">Change Logs</h2>
+        <div id="change-logs-list" style="color: black;">
+        </div>
+    </div>
+</div>
+
+<!-- Audio Menu Modal -->
+<div id="audio-menu-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAudioMenu()">&times;</span>
+        <h2>Audio Settings</h2>
+        <div class="audio-options">
+            <label for="music-select" style="color: black;">Choose Background Music:</label>
+            <select id="music-select" onchange="updateSelectedMusic()">
+                <option value="music1">Music 1</option>
+                <option value="music2">Music 2</option>
+                <option value="music3">Music 3</option>
+                <option value="music4">Music 4</option>
+                <option value="music5">Music 5</option>
+            </select>
+            <button class="button" id="play-button" onclick="playSelectedMusic()">Play</button>
+            <button class="button" id="stop-button" onclick="stopBackgroundMusic()">Stop</button>
+            <div id="status-message" style="margin-top: 10px; color: #fff;"></div>
+        </div>
+        <div class="volume-settings">
+            <label for="volume" style="color: black;">Volume:</label>
+            <input type="range" id="volume" min="0" max="1" step="0.1" value="1" oninput="adjustVolume(this.value)">
+        </div>
+    </div>
+</div>
+
+<!-- Game Container -->
+<div id="game-container" style="width: 500px; height: 400px; position: relative;">
+    <div id="target">
+        <div class="circle outer-circle"></div>
+        <div class="circle middle-circle"></div>
+        <div class="circle inner-circle"></div>
+    </div>
+</div>
+
+
+    <div id="crosshair"></div>
+
+    <div id="stats-container">
+        <p id="points-counter">Score: <span id="score">0</span></p>
+        <p id="timer">Time left: <span id="time-left">60</span> sec</p>
+        <p id="reaction-time">Average reaction time: <span id="average-reaction-time">---</span> ms</p>
+        <p id="accuracy">Accuracy: <span id="accuracy-display">100%</span></p>
+    </div>
+
+    <div id="stats">
+        <p class="game-over">Game Over!</p>
+        <p class="final-stats">Accuracy: <span id="final-accuracy">---</span>%</p>
+        <p class="final-stats">Reaction time: <span id="final-reaction-time">---</span> ms</p>
+        <p class="final-stats">Hits: <span id="final-hits">---</span></p>
+        <p class="final-stats">Misses: <span id="final-misses">---</span></p>
+        <p class="final-stats">Final Score: <span id="final-score">---</span></p>
+        <p class="final-stats">Hit to Miss Ratio: <span id="final-hit-to-miss">---</span></p>
+    </div>
+
+<!-- Tutorial Modal -->
+<div id="tutorial-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTutorial()">&times;</span>
+        <h2 style="color: black;">How to Play V2</h2>
+        <p style="color: black;">Welcome back to Blake's Aim Trainer V2! In this updated version, your goal is to click on the targets with precision and speed to rack up your score.</p>
+        <p style="color: black;">Each target you hit earns you points. A bullseye now grants you 3 points, while hitting anywhere else awards 2 points.</p>
+        <p style="color: black;">Beware! Clicking outside the target area will result in a 2-point deduction from your score.</p>
+        <p style="color: black;">You have 60 seconds to achieve your highest score. The targets will appear in varying sizes and speeds to challenge your skills. Good luck!</p>
+    </div>
+</div>
+
+<div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeSettings()">&times;</span>
+        <h2 style="color: black;">Settings</h2>
+        <button onclick="enableHighQualityMode()">High Quality mode</button>
+        <button onclick="toggleDarkMode()">Dark Mode</button>
+        <button onclick="openAudioMenu()">Change Background Music</button>
+        <button onclick="openSizeModal()">Change Size</button>
+        <button onclick="showChangeLogs()">Change Logs</button>
+        <button onclick="showVersionHistory()">Version History</button>
+    </div>
+</div>
+
+<div class="mode-buttons">
+    <button onclick="startGame()" style="color: black;">Start</button>
+    <button onclick="showTutorial()" style="color: black;">Tutorial</button>
+    <!--W.I.P-->
+    <!-- <button onclick="showPastGames()" style="color: black;">Past Games</button> --> 
+    <button onclick="openSettings()" style="color: black;">Settings</button>
+</div>
+
+    <script>
+   // Initialize variables
+   let score = 0;
+    let target = document.getElementById('target');
+    let gameContainer = document.getElementById('game-container');
+    let scoreDisplay = document.getElementById('score');
+    let averageReactionTimeDisplay = document.getElementById('average-reaction-time');
+    let accuracyDisplay = document.getElementById('accuracy-display');
+    let statsContainer = document.getElementById('stats-container');
+    let timerDisplay = document.getElementById('time-left');
+    let timerInterval;
+    let totalReactionTime = 0;
+    let reactionCount = 0;
+    let totalClicks = 0;
+    let totalHits = 0;
+    let targetTime = performance.now();
+    let isGameStarted = false;
+
+    function changeSize() {
+    var width = document.getElementById("width-input").value;
+    var height = document.getElementById("height-input").value;
+    width = Math.max(300, Math.min(800, width));
+    height = Math.max(200, Math.min(500, height));
+    document.getElementById("game-container").style.width = width + "px";
+    document.getElementById("game-container").style.height = height + "px";
+}
+
+
+    // Update score function
+    function updateScore(points) {
+        score += points;
+        scoreDisplay.textContent = score;
+    }
+
+    // Crosshair
+    document.addEventListener('mousemove', function(event) {
+        let crosshair = document.getElementById('crosshair');
+        if (isInsideGameContainer(event.clientX, event.clientY)) {
+            gameContainer.style.cursor = 'none';
+            crosshair.style.display = 'block'; 
+            crosshair.style.left = event.clientX + 'px';
+            crosshair.style.top = event.clientY + 'px';
+        } else {
+            gameContainer.style.cursor = 'auto';
+            crosshair.style.display = 'none';
+        }
+    });
+
+
+    // Check if mouse is inside the game container
+    function isInsideGameContainer(x, y) {
+        let rect = gameContainer.getBoundingClientRect();
+        return (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+    }
+
+    // Update average reaction time and accuracy function
+    function updateAverageReactionTime(reactionTime, hit) {
+        totalReactionTime += reactionTime;
+        let averageReactionTime = totalHits !== 0 ? totalReactionTime / totalHits : 0;
+        averageReactionTimeDisplay.textContent = averageReactionTime.toFixed(2);
+
+        if (hit) {
+            totalHits++;
+        }
+        totalClicks++;
+        let accuracy = totalHits !== 0 ? (totalHits / totalClicks) : 0;
+accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
+
+    }
+    
+
+    // Function to calculate Hit to Miss ratio
+    function calculateHitToMissRatio() {
+        let hitToMissRatio = totalHits + " : " + (totalClicks - totalHits);
+        return hitToMissRatio;
+    }
+
+    // End game function
+    function endGame() {
+        clearInterval(timerInterval); // Stop the timer
+        isGameStarted = false;
+        // Remove click event listeners
+        target.removeEventListener('click', targetClickHandler);
+        gameContainer.removeEventListener('click', gameContainerClickHandler);
+
+        // Hide target
+        target.style.display = 'none';
+
+        // Hide stats container
+        statsContainer.style.display = 'none';
+
+        // Show game over stats
+        stats.style.display = 'block';
+
+        // Calculate accuracy
+        let accuracy = (totalHits / totalClicks) * 100;
+
+        // Display final stats
+        document.getElementById('final-accuracy').textContent = accuracy.toFixed(2);
+        document.getElementById('final-reaction-time').textContent = averageReactionTimeDisplay.textContent;
+        document.getElementById('final-hits').textContent = totalHits;
+        document.getElementById('final-misses').textContent = totalClicks - totalHits;
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('final-hit-to-miss').textContent = calculateHitToMissRatio();
+    }
+
+    // Click event for target
+    function targetClickHandler(event) {
+        let clickX = event.clientX - target.getBoundingClientRect().left;
+        let clickY = event.clientY - target.getBoundingClientRect().top;
+        let targetCenterX = target.offsetWidth / 2;
+        let targetCenterY = target.offsetHeight / 2;
+        let distance = Math.sqrt(Math.pow(clickX - targetCenterX, 2) + Math.pow(clickY - targetCenterY, 2));
+        let isBullseye = distance < 15;
+        let points = isBullseye ? 2 : 1;
+        let clickTime = performance.now();
+        let reactionTime = clickTime - targetTime;
+        updateAverageReactionTime(reactionTime, true);
+        updateScore(points);
+        resetTarget();
+    }
+
+
+
+    // Click event for game container (missed click)
+    function gameContainerClickHandler(event) {
+        if (isGameStarted && event.target === gameContainer) {
+            updateScore(-1); // lower score if clicked outside the target
+            updateAverageReactionTime(0, false);
+        }
+    }
+           // Function to display the red X at the specified coordinates
+           function displayMissedClick(x, y) {
+            let missedClick = document.getElementById('missed-click');
+            missedClick.style.position = 'absolute';
+            missedClick.style.left = x + 'px';
+            missedClick.style.top = y + 'px';
+            missedClick.innerHTML = 'X';
+            missedClick.style.color = 'red';
+            missedClick.style.fontSize = '24px';
+            missedClick.style.transition = 'opacity 1s';
+            // Fade out after 3 seconds
+            setTimeout(() => {
+                missedClick.style.opacity = '0';
+            }, 3000);
+            }
+        // Event listener for clicks on the game container
+        document.getElementById('game-container').addEventListener('click', function(event) {
+            // Check if the game is currently running
+            if (isGameStarted) {
+                // Check if the click is outside the target area
+                if (event.target === gameContainer) {
+                    // Display the red X at the click coordinates
+                    displayMissedClick(event.clientX, event.clientY);
+                    // Update the score (deduct 1 point for a missed click)
+                    updateScore(-1);
+                    // Update the average reaction time and accuracy
+                    updateAverageReactionTime(0, false);
+                }
+            }
+        });
+
+// reset target position
+function resetTarget() {
+    let maxX = gameContainer.clientWidth - target.clientWidth;
+    let maxY = gameContainer.clientHeight - target.clientHeight;
+    console.log('Max X:', maxX, 'Max Y:', maxY); // Debug line to check max X and Y
+    target.style.left = Math.floor(Math.random() * maxX) + "px";
+    target.style.top = Math.floor(Math.random() * maxY) + "px";
+    targetTime = performance.now(); // Store current time
+}
+
+
+function startGame() {
+    if (!isGameStarted) {
+        isGameStarted = true;
+        score = 0;
+        scoreDisplay.textContent = score;
+        totalReactionTime = 0;
+        reactionCount = 0;
+        totalClicks = 0;
+        totalHits = 0;
+        timerDisplay.textContent = '60';
+        timerInterval = setInterval(updateTimer, 1000);
+        statsContainer.style.display = 'block';
+        stats.style.display = 'none';
+        target.style.display = 'block';
+        target.addEventListener('click', targetClickHandler);
+        gameContainer.addEventListener('click', gameContainerClickHandler);
+        resetTarget();
+    }
+}
+    // Function to update the timer
+    function updateTimer() {
+        let timeLeft = parseInt(timerDisplay.textContent);
+        timeLeft--;
+        if (timeLeft >= 0) {
+            timerDisplay.textContent = timeLeft.toString();
+        } else {
+            stats.style.display = 'none';
+            endGame();
+        }
+    }
+
+    // Function to show tutorial modal
+    function showTutorial() {
+        let modal = document.getElementById("tutorial-modal");
+        modal.style.display = "block";
+    }
+
+    // Function to close tutorial modal
+    function closeTutorial() {
+        let modal = document.getElementById("tutorial-modal");
+        modal.style.display = "none";
+    }
+
+    function toggleDarkMode() {
+    // Toggle the 'dark-mode' class on the body element
+    document.body.classList.toggle('dark-mode');
+
+    let darkModeButton = document.querySelector('#settings-modal button:nth-of-type(2)');
+
+    // Check if Dark Mode is enabled
+    if (document.body.classList.contains('dark-mode')) {
+        darkModeButton.textContent = 'Light Mode';
+        // Save the preference to localStorage
+        localStorage.setItem('theme', 'dark');
+    } else {
+        darkModeButton.textContent = 'Dark Mode';
+        // Save the preference to localStorage
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Call the setInitialButtonText function when the page loads
+window.onload = setInitialButtonText;
+
+function setInitialButtonText() {
+    let darkModeButton = document.querySelector('#settings-modal button:nth-of-type(2)');
+    if (document.body.classList.contains('dark-mode')) {
+        darkModeButton.textContent = 'Light Mode';
+    } else {
+        darkModeButton.textContent = 'Dark Mode';
+    }
+}
+
+function setInitialTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    
+    // Apply the saved theme if it exists
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.querySelector('#settings-modal button:nth-of-type(2)').textContent = 'Light Mode';
+    } else {
+        document.body.classList.remove('dark-mode');
+        document.querySelector('#settings-modal button:nth-of-type(2)').textContent = 'Dark Mode';
+    }
+}
+
+// Call the setInitialTheme function when the page loads
+window.onload = setInitialTheme;
+
+    // End game function
+    function endGame() {
+        clearInterval(timerInterval);
+        isGameStarted = false;
+        // Remove click event listeners
+        target.removeEventListener('click', targetClickHandler);
+        gameContainer.removeEventListener('click', gameContainerClickHandler);
+
+        // Hide target
+        target.style.display = 'none';
+
+        // Hide stats container
+        statsContainer.style.display = 'none';
+
+        // Show game over stats
+        stats.style.display = 'block';
+
+        // Calculate accuracy
+        let accuracy = (totalHits / totalClicks) * 100;
+
+        // Save game data
+        saveGameData(score, accuracy.toFixed(2), averageReactionTimeDisplay.textContent, totalHits, totalClicks);
+
+        // Display final stats
+        document.getElementById('final-accuracy').textContent = accuracy.toFixed(2);
+        document.getElementById('final-reaction-time').textContent = averageReactionTimeDisplay.textContent;
+        document.getElementById('final-hits').textContent = totalHits;
+        document.getElementById('final-misses').textContent = totalClicks - totalHits;
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('final-hit-to-miss').textContent = calculateHitToMissRatio();
+    }
+
+        // Function to open the size modal
+        function openSizeModal() {
+            let sizeModal = document.getElementById("size-modal");
+            sizeModal.style.display = "block";
+        }
+
+        // Function to close the size modal
+        function closeSizeModal() {
+            let sizeModal = document.getElementById("size-modal");
+            sizeModal.style.display = "none";
+        }
+
+        // Function to open the size modal
+        function openSizeModal() {
+            let sizeModal = document.getElementById("size-modal");
+            sizeModal.style.display = "block";
+            settingsIsOpen = false;
+            sizeModal.style.zIndex = 1001;
+        }
+
+        // Function to close the size modal
+        function closeSizeModal() {
+            let sizeModal = document.getElementById("size-modal");
+            sizeModal.style.display = "none";
+            settingsIsOpen = true;
+        }
+    </script>
+
+<script>
+    // Function to open the settings modal
+    let settingsIsOpen = false;
+    function openSettings() {
+        settingsIsOpen = true;
+        let settingsModal = document.getElementById("settings-modal");
+        settingsModal.style.display = "block";
+        // hide crosshair
+        document.getElementById('crosshair').style.display = 'none';
+    }
+
+    // Function to close the settings modal
+    function closeSettings() {
+        let settingsModal = document.getElementById("settings-modal");
+        settingsModal.style.display = "none";
+        settingsIsOpen = false;
+        // show crosshair
+        document.getElementById('crosshair').style.display = 'block';
+    }
+
+    // Function to enable High Quality mode
+    function enableHighQualityMode() {
+        window.location.href = "./highquality/highqualitymode.html";
+    }
+
+    // function to go to first version
+    function firstVersion() {
+        window.location.href = "./firstaimtrainer.html"
+    }
+
+// Function to open the audio menu modal
+function openAudioMenu() {
+    const audioMenuModal = document.getElementById("audio-menu-modal");
+    
+    audioMenuModal.style.display = "block";
+    
+    audioMenuModal.style.zIndex = 9999;
+}
+
+// Function to close the audio menu modal
+function closeAudioMenu() {
+    document.getElementById("audio-menu-modal").style.display = "none";
+}
+
+// Function to play selected background music
+function playSelectedMusic() {
+    let selectedMusic = document.getElementById("music-select").value;
+    let audio;
+
+    // Check if the same music is already playing
+    if (window.currentAudio && window.currentAudio.src.includes(selectedMusic)) {
+        document.getElementById("status-message").textContent = "Already playing: " + selectedMusic;
+        return;
+    }
+
+    stopBackgroundMusic();
+
+    // Music Tracks
+    if (selectedMusic === "music1") {
+        audio = new Audio('./Audio/Music/gameaudio1.mp3');
+    } else if (selectedMusic === "music2") {
+        audio = new Audio('./Audio/Music/gameaudio2.mp3');
+    } else if (selectedMusic === "music3") {
+        audio = new Audio('./Audio/Music/gameaudio3.mp3');
+    } else if (selectedMusic === "music4") {
+        audio = new Audio('./Audio/Music/gameaudio4.mp3');
+    } else if (selectedMusic === "music5") {
+        audio = new Audio('./Audio/Music/gameaudio5.mp3');
+    }
+
+    if (audio) {
+        audio.loop = true;
+        audio.play();
+        window.currentAudio = audio; 
+        document.getElementById("status-message").textContent = "Playing: " + selectedMusic;
+    }
+}
+function updateSelectedMusic() {
+    let selectedMusic = document.getElementById("music-select").value;
+    
+    document.getElementById("status-message").textContent = "Selected: " + selectedMusic;
+}
+
+// Function to adjust volume
+function adjustVolume(value) {
+    if (window.currentAudio) {
+        window.currentAudio.volume = value;
+    }
+}
+function showChangeLogs() {
+        
+    }
+
+// Function to stop background music
+function stopBackgroundMusic() {
+    if (window.currentAudio) {
+        window.currentAudio.pause();
+        window.currentAudio.currentTime = 0; // Reset to start
+        window.currentAudio = null; // Clear the audio instance
+    }
+}
+
+        document.addEventListener('selectstart', function() {
+    event.preventDefault();
+  });
+
+  function showVersionHistory() {
+    const existingModal = document.querySelector('.version-history-modal');
+    if (existingModal) {
+        existingModal.style.display = 'block';
+        return;
+    }
+
+    // Create a new version history modal
+    const versionHistoryModal = document.createElement('div');
+versionHistoryModal.classList.add('modal', 'version-history-modal');
+versionHistoryModal.style.zIndex = 1001;
+
+versionHistoryModal.innerHTML = `
+    <div class="modal-content">
+        <span class="close" onclick="closeVersionHistory()">&times;</span>
+        <h2 style="color: black;">Version History</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <span style="color: white; background-color: #333; padding: 10px 20px; border-radius: 5px; text-align: center; cursor: default;">
+                Current Version: Version 2.0.1
+            </span>
+            <button onclick="window.location.href='path/to/version1.5.html'" style="color: white;">Version 1.5: First Working Version</button>
+            <button onclick="window.location.href='./firstaimtrainer.html'" style="color: white;">Version 1.0: Development Build</button>
+        </div>
+    </div>
+`;
+
+document.body.appendChild(versionHistoryModal);
+versionHistoryModal.style.display = 'block';
+}
+
+function closeVersionHistory() {
+    const modal = document.querySelector('.version-history-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.removeChild(modal);
+    }
+}
+const changeLogs = [
+    "Version 2.0.1 Release",
+    "Added everyone's favorite, ROUNDED CORNERS!!!",
+    "Completely redid the Audio Menu and added refreshed songs",
+    "Added a Version History, so you can play different versions of the game",
+    "Completely redid the buttons styles, enjoy a new styling of the game.",
+    "Dark mode will now save on page refresh and open, you're welcome.",
+    "Improved performance and killed a lot of bugs.",
+    "The Chris Trainer has been temporarily removed so version 2 can be done."
+];
+
+// Function to open change logs modal
+function showChangeLogs() {
+    const modal = document.getElementById("change-logs-modal");
+    const changeLogsList = document.getElementById("change-logs-list");
+    
+    // Clear existing change logs
+    changeLogsList.innerHTML = "";
+
+    // Create a <ul> element for the list
+    const ul = document.createElement("ul");
+    
+    // Populate change logs
+    changeLogs.forEach((log, index) => {
+        const li = document.createElement("li");
+        
+        // Check if this is the version release
+        if (index === 0) {
+            li.innerHTML = `<strong style="font-size: 1.2em; color: Red;">${log}</strong>`;
+        } else {
+            li.textContent = log;
+            li.style.color = "black";
+        }
+        
+        ul.appendChild(li);
+    });
+    
+    changeLogsList.appendChild(ul);
+    modal.style.display = "block";
+    modal.style.zIndex = "1001";
+}
+
+// Function to close change logs modal
+function closeChangeLogs() {
+    const modal = document.getElementById("change-logs-modal");
+    modal.style.display = "none";
+}
+
+    </script>    
+</body>
+</html>
