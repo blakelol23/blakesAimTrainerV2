@@ -5,24 +5,40 @@
 <link rel="icon" type="image/x-icon" href="AimTrainer.ico">
 <title>Blake's Aim Trainer V2</title>
 <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@400;700&family=Sedgwick+Ave+Display&display=swap" rel="stylesheet">
 </head>
 <body>
     <p id="solution"></p>
     <div id="error-container"></div>
     <div id="missed-click"></div>
 
-<!-- Size Modal -->
-<div id="size-modal" class="modal">
+<!-- Themes Modal -->
+<div id="theme-menu-modal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeSizeModal()">&times;</span>
-        <h2>Change Size</h2>
-        <label for="width-input" style="color: black;">Width:</label>
-        <input type="number" id="width-input" placeholder="Enter width" value="500" min="300" max="800">
-        <div>
-            <label for="height-input" style="color: black;">Height:</label>
-            <input type="number" id="height-input" placeholder="Enter height" value="400" min="200" max="500">
+        <span class="close" onclick="closeThemeMenu()">&times;</span>
+        <h2>Select Button Gradient</h2>
+        <div class="theme-option">
+            <button class="theme-button" onclick="applyGradientTheme('145deg, #0026ff, #000000')">
+                Gradient 1
+            </button>
         </div>
-        <p><button onclick="changeSize()">Apply Size</button></p>
+        <div class="theme-option">
+            <button class="theme-button" onclick="applyGradientTheme('145deg, #ff0000, #000000')">
+                Gradient 2
+            </button>
+        </div>
+        <div class="theme-option">
+            <button class="theme-button" onclick="applyGradientTheme('145deg, #00ff00, #0000ff')">
+                Gradient 3
+            </button>
+        </div>
+        <div class="custom-gradient">
+            <label for="start-color">Start Color:</label>
+            <input type="color" id="start-color" name="start-color" value="#0026ff">
+            <label for="end-color">End Color:</label>
+            <input type="color" id="end-color" name="end-color" value="#000000">
+            <button onclick="applyCustomGradient()">Apply Custom Gradient</button>
+        </div>
     </div>
 </div>
 
@@ -44,10 +60,10 @@
         <div class="audio-options">
             <label for="music-select" style="color: black;">Choose Background Music:</label>
             <select id="music-select" onchange="updateSelectedMusic()">
-                <option value="music1">Music 1</option>
-                <option value="music2">Music 2</option>
-                <option value="music3">Music 3</option>
-                <option value="music4">Music 4</option>
+                <option value="music1">gameaudio1</option>
+                <option value="music2">gameaudio2</option>
+                <option value="music3">gameaudio3</option>
+                <option value="music4">gameaudio4</option>
             </select>
             <button class="button" id="play-button" onclick="playSelectedMusic()">Play</button>
             <button class="button" id="stop-button" onclick="stopBackgroundMusic()">Stop</button>
@@ -61,7 +77,7 @@
 </div>
 
 <!-- Game Container -->
-<div id="game-container" style="width: 500px; height: 400px; position: relative;">
+<div id="game-container" style="width: 800px; height: 500px; position: relative;">
     <div id="target">
         <div class="circle outer-circle"></div>
         <div class="circle middle-circle"></div>
@@ -93,8 +109,8 @@
 <div id="tutorial-modal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeTutorial()">&times;</span>
-        <h2 style="color: black;">How to Play V2</h2>
-        <p style="color: black;">Welcome back to Blake's Aim Trainer V2! In this updated version, your goal is to click on the targets with precision and speed to rack up your score.</p>
+        <h2 style="color: black;">How to Play</h2>
+        <p style="color: black;">Welcome back to Blake's Aim Trainer! In this updated version, your goal is to click on the targets with precision and speed to rack up your score.</p>
         <p style="color: black;">Each target you hit earns you points. A bullseye now grants you 3 points, while hitting anywhere else awards 2 points.</p>
         <p style="color: black;">Beware! Clicking outside the target area will result in a 2-point deduction from your score.</p>
         <p style="color: black;">You have 60 seconds to achieve your highest score. The targets will appear in varying sizes and speeds to challenge your skills. Good luck!</p>
@@ -104,11 +120,11 @@
 <div id="settings-modal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeSettings()">&times;</span>
-        <h2 style="color: black;">Settings</h2>
-        <button onclick="enableHighQualityMode()">High Quality mode</button>
+        <h2 style="color: black; font-family: 'Sedgwick Ave Display', cursive; font-size: 50px">Settings</h2>
+        <button onclick="openGameModes()">Gamemodes</button>
         <button onclick="toggleDarkMode()">Dark Mode</button>
+        <button onclick="openThemeMenu()">Themes</button>
         <button onclick="openAudioMenu()">Change Background Music</button>
-        <button onclick="openSizeModal()">Change Size</button>
         <button onclick="showChangeLogs()">Change Logs</button>
         <button onclick="showVersionHistory()">Version History</button>
     </div>
@@ -117,8 +133,7 @@
 <div class="mode-buttons">
     <button onclick="startGame()" style="color: black;">Start</button>
     <button onclick="showTutorial()" style="color: black;">Tutorial</button>
-    <!--W.I.P-->
-    <!-- <button onclick="showPastGames()" style="color: black;">Past Games</button> --> 
+   <!-- <button onclick="showPastGames()" style="color: black;">Past Games</button> -->
     <button onclick="openSettings()" style="color: black;">Settings</button>
 </div>
 
@@ -134,20 +149,10 @@
     let timerDisplay = document.getElementById('time-left');
     let timerInterval;
     let totalReactionTime = 0;
-    let reactionCount = 0;
     let totalClicks = 0;
     let totalHits = 0;
     let targetTime = performance.now();
     let isGameStarted = false;
-
-    function changeSize() {
-    var width = document.getElementById("width-input").value;
-    var height = document.getElementById("height-input").value;
-    width = Math.max(300, Math.min(800, width));
-    height = Math.max(200, Math.min(500, height));
-    document.getElementById("game-container").style.width = width + "px";
-    document.getElementById("game-container").style.height = height + "px";
-}
 
 
     // Update score function
@@ -201,7 +206,7 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
         let targetCenterY = target.offsetHeight / 2;
         let distance = Math.sqrt(Math.pow(clickX - targetCenterX, 2) + Math.pow(clickY - targetCenterY, 2));
         let isBullseye = distance < 15;
-        let points = isBullseye ? 2 : 1;
+        let points = distance < 15 ? 2 : (distance < 30 ? 1 : 0);
         let clickTime = performance.now();
         let reactionTime = clickTime - targetTime;
         updateAverageReactionTime(reactionTime, true);
@@ -209,29 +214,9 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
         resetTarget();
     }
 
-    function gameContainerClickHandler(event) {
-        if (isGameStarted && event.target === gameContainer) {
-            updateScore(-1);
-            updateAverageReactionTime(0, false);
-        }
-    }
-           function displayMissedClick(x, y) {
-            let missedClick = document.getElementById('missed-click');
-            missedClick.style.position = 'absolute';
-            missedClick.style.left = x + 'px';
-            missedClick.style.top = y + 'px';
-            missedClick.innerHTML = 'X';
-            missedClick.style.color = 'red';
-            missedClick.style.fontSize = '24px';
-            missedClick.style.transition = 'opacity 1s';
-            setTimeout(() => {
-                missedClick.style.opacity = '0';
-            }, 3000);
-            }
         document.getElementById('game-container').addEventListener('click', function(event) {
             if (isGameStarted) {
                 if (event.target === gameContainer) {
-                    displayMissedClick(event.clientX, event.clientY);
                     updateScore(-1);
                     updateAverageReactionTime(0, false);
                 }
@@ -245,7 +230,7 @@ function resetTarget() {
     console.log('Max X:', maxX, 'Max Y:', maxY); // Debug line to check max X and Y
     target.style.left = Math.floor(Math.random() * maxX) + "px";
     target.style.top = Math.floor(Math.random() * maxY) + "px";
-    targetTime = performance.now(); // Store current time
+    targetTime = performance.now();
 }
 
 
@@ -255,10 +240,9 @@ function startGame() {
         score = 0;
         scoreDisplay.textContent = score;
         totalReactionTime = 0;
-        reactionCount = 0;
         totalClicks = 0;
         totalHits = 0;
-        timerDisplay.textContent = '1';
+        timerDisplay.textContent = '60';
         timerInterval = setInterval(updateTimer, 1000);
         statsContainer.style.display = 'block';
         stats.style.display = 'none';
@@ -293,7 +277,6 @@ function startGame() {
     }
 
     function toggleDarkMode() {
-    // Toggle the 'dark-mode' class on the body element
     document.body.classList.toggle('dark-mode');
 
     let darkModeButton = document.querySelector('#settings-modal button:nth-of-type(2)');
@@ -308,8 +291,6 @@ function startGame() {
     }
 }
 
-// Call the setInitialButtonText function when the page loads
-window.onload = setInitialButtonText;
 
 function setInitialButtonText() {
     let darkModeButton = document.querySelector('#settings-modal button:nth-of-type(2)');
@@ -333,31 +314,21 @@ function setInitialTheme() {
     }
 }
 
-// Call the setInitialTheme function when the page loads
-window.onload = setInitialTheme;
-
-    // End game function
- // End game function
 function endGame() {
     clearInterval(timerInterval);
     isGameStarted = false;
 
-    // Remove click event listeners
     target.removeEventListener('click', targetClickHandler);
     gameContainer.removeEventListener('click', gameContainerClickHandler);
 
-    // Hide target
     target.style.display = 'none';
 
-    // Hide stats container
     statsContainer.style.display = 'none';
 
-    // Calculate final stats
     let finalAccuracy = (totalHits / totalClicks) * 100;
     let finalReactionTime = totalHits !== 0 ? totalReactionTime / totalHits : 0;
     let hitToMissRatio = calculateHitToMissRatio();
 
-    // Display final stats
     document.getElementById('final-accuracy').textContent = finalAccuracy.toFixed(2);
     document.getElementById('final-reaction-time').textContent = finalReactionTime.toFixed(2) + " ms";
     document.getElementById('final-hits').textContent = totalHits;
@@ -365,66 +336,23 @@ function endGame() {
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-hit-to-miss').textContent = hitToMissRatio;
 
-    // Show game over screen and stats
     document.getElementById('stats').style.display = 'block';
 }
 
-        // Function to open the size modal
-        function openSizeModal() {
-            let sizeModal = document.getElementById("size-modal");
-            sizeModal.style.display = "block";
-        }
-
-        // Function to close the size modal
-        function closeSizeModal() {
-            let sizeModal = document.getElementById("size-modal");
-            sizeModal.style.display = "none";
-        }
-
-        // Function to open the size modal
-        function openSizeModal() {
-            let sizeModal = document.getElementById("size-modal");
-            sizeModal.style.display = "block";
-            settingsIsOpen = false;
-            sizeModal.style.zIndex = 1001;
-        }
-
-        // Function to close the size modal
-        function closeSizeModal() {
-            let sizeModal = document.getElementById("size-modal");
-            sizeModal.style.display = "none";
-            settingsIsOpen = true;
-        }
-    </script>
-
-<script>
-    // Function to open the settings modal
     let settingsIsOpen = false;
     function openSettings() {
         settingsIsOpen = true;
         let settingsModal = document.getElementById("settings-modal");
         settingsModal.style.display = "block";
-        // hide crosshair
         document.getElementById('crosshair').style.display = 'none';
     }
 
-    // Function to close the settings modal
     function closeSettings() {
         let settingsModal = document.getElementById("settings-modal");
         settingsModal.style.display = "none";
         settingsIsOpen = false;
         // show crosshair
         document.getElementById('crosshair').style.display = 'block';
-    }
-
-    // Function to enable High Quality mode
-    function enableHighQualityMode() {
-        window.location.href = "./highquality/highqualitymode.html";
-    }
-
-    // function to go to first version
-    function firstVersion() {
-        window.location.href = "./firstaimtrainer.html"
     }
 
 function openAudioMenu() {
@@ -459,8 +387,6 @@ function playSelectedMusic() {
         audio = new Audio('./Audio/Music/gameaudio3.mp3');
     } else if (selectedMusic === "music4") {
         audio = new Audio('./Audio/Music/gameaudio4.mp3');
-   /* } else if (selectedMusic === "music5") { !! doesn't exist yet !!
-        audio = new Audio('./Audio/Music/gameaudio5.mp3'); */
     }
 
     if (audio) {
@@ -482,11 +408,7 @@ function adjustVolume(value) {
         window.currentAudio.volume = value;
     }
 }
-function showChangeLogs() {
-        
-    }
 
-// Function to stop background music
 function stopBackgroundMusic() {
     if (window.currentAudio) {
         window.currentAudio.pause();
@@ -495,9 +417,44 @@ function stopBackgroundMusic() {
     }
 }
 
-        document.addEventListener('selectstart', function() {
+document.addEventListener('selectstart', function() {
     event.preventDefault();
-  });
+});
+
+  function openGameModes() {
+    const existingModal = document.querySelector('.gamemode-modal');
+    if (existingModal) {
+        existingModal.style.display = 'block';
+        return;
+    }
+
+        const gamemodeModal = document.createElement('div');
+gamemodeModal.classList.add('modal', 'gamemode-modal');
+gamemodeModal.style.zIndex = 1001;
+
+gamemodeModal.innerHTML = `
+    <div class="modal-content">
+        <span class="close" onclick="closeGameModes()">&times;</span>
+        <h2 style="color: black;">Gamemodes</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="window.location.href='./Gamemodes/chrisTrainer.html'" style="color: white;">Chris Trainer V1</button>
+            <button onclick="window.location.href='./Gamemodes/highquality/highqualitymode.html'" style="color: white;">High Quality Mode</button>
+            <button onclick="" style="color: white;">TBA</button>
+            <button onclick="" style="color: white;">TBA</button>
+        </div>
+    </div>
+`;
+
+document.body.appendChild(gamemodeModal);
+gamemodeModal.style.display = 'block';
+}
+function closeGameModes() {
+    const modal = document.querySelector('.gamemode-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.removeChild(modal);
+    }
+}
 
   function showVersionHistory() {
     const existingModal = document.querySelector('.version-history-modal');
@@ -506,7 +463,6 @@ function stopBackgroundMusic() {
         return;
     }
 
-    // Create a new version history modal
     const versionHistoryModal = document.createElement('div');
 versionHistoryModal.classList.add('modal', 'version-history-modal');
 versionHistoryModal.style.zIndex = 1001;
@@ -516,11 +472,9 @@ versionHistoryModal.innerHTML = `
         <span class="close" onclick="closeVersionHistory()">&times;</span>
         <h2 style="color: black;">Version History</h2>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <span style="color: white; background-color: #333; padding: 10px 20px; border-radius: 5px; text-align: center; cursor: default;">
-                Current Version: Version 2.0.2
-            </span>
-            <button onclick="window.location.href='path/to/version1.5.html'" style="color: white;">Version 1.5: First Working Version</button>
-            <button onclick="window.location.href='./firstaimtrainer.html'" style="color: white;">Version 1.0: Development Build</button>
+            <span style="color: white; background-color: #333; padding: 10px 20px; border-radius: 5px; text-align: center; cursor: default;">Current Version: Version 2.0.5</span>
+            <button onclick="window.location.href='./Versions/Version 1.5/finalproject/aimTrainerTest.html'" style="color: white;">Version 1.0: First Release</button>
+            <button onclick="window.location.href='./Versions/firstaimtrainer.html'" style="color: white;">Version 0.5: Development Build</button>
         </div>
     </div>
 `;
@@ -536,18 +490,27 @@ function closeVersionHistory() {
         document.body.removeChild(modal);
     }
 }
+
+// Function to open change logs modal
 const changeLogs = [
     "Version 2.0 Release",
     "Added everyone's favorite, ROUNDED CORNERS!!!",
-    "Completely redid the Audio Menu and added refreshed songs",
-    "Added a Version History, so you can play different versions of the game",
+    "Completely redid the Audio Menu and added refreshed songs plus 2 new ones.",
+    "Added a Version History, so you can play different versions of the game.",
     "Completely redid the buttons styles, enjoy a new styling of the game.",
-    "Improved performance and killed a lot of bugs.",
-    "The Chris Trainer has been temporarily removed so version 2 of it can be done.",
     "Dark mode will now save on page refresh and open, you're welcome.",
     "Fixed text being gray and hard to see when you have dark mode enabled.",
     "Fixed the reaction time equation not being accurate at all.",
-    "Added game audios 3 and 4"
+    "Made the game container larger.",
+    "Added a new fade in animation for popup menus.",
+    "Added a new Gamemodes option.",
+    "Added new fonts to the game.",
+    "The change size setting is being redone, expect it back in version 2.1.0",
+    "Removed the ability to right click to avoid conflicts.",
+    "Removed the ability to select text on the screen because it broke things.",
+    "Cleaned up most of the code for better understanding.",
+    "Added a new Themes menu so you're not stuck with 2 themes that can only be changed by entering dark/light mode",
+
 ];
 
 // Function to open change logs modal
@@ -563,18 +526,17 @@ function showChangeLogs() {
         const li = document.createElement("li");
 
         if (index === 0) {
-            li.innerHTML = `<strong style="font-size: 1.2em; color: Red;">${log}</strong>`;
+            li.innerHTML = `<strong>${log}</strong>`;
         } else {
             li.textContent = log;
-            li.style.color = "black";
         }
         
         ul.appendChild(li);
+        modal.style.zIndex = "1001";
     });
     
     changeLogsList.appendChild(ul);
-    modal.style.display = "block";
-    modal.style.zIndex = "1001";
+    modal.style.display = "flex";
 }
 
 function closeChangeLogs() {
@@ -582,6 +544,34 @@ function closeChangeLogs() {
     modal.style.display = "none";
 }
 
+function openThemeMenu() {
+    document.getElementById('theme-menu-modal').style.display = 'block';
+    document.getElementById('theme-menu-modal').style.zIndex = "1001";
+}
+
+function closeThemeMenu() {
+    document.getElementById('theme-menu-modal').style.display = 'none';
+}
+
+function applyGradientTheme(gradient) {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.style.background = `linear-gradient(${gradient})`;
+    });
+    closeThemeMenu();
+}
+
+function applyCustomGradient() {
+    const startColor = document.getElementById('start-color').value;
+    const endColor = document.getElementById('end-color').value;
+    const customGradient = `145deg, ${startColor}, ${endColor}`;
+    applyGradientTheme(customGradient);
+}
+
+window.onload = function() {
+    setInitialButtonText();
+    setInitialTheme();
+};
     </script>    
 </body>
 </html>
