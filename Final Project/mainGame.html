@@ -573,6 +573,13 @@ window.onload = function() {
     setInitialButtonText();
     setInitialTheme();
 };
+
+function gameContainerClickHandler(event) {
+        if (isGameStarted && event.target === gameContainer) {
+            updateScore(-1);
+            updateAverageReactionTime(0, false);
+        }
+    }
     </script>    
 </body>
 </html>
