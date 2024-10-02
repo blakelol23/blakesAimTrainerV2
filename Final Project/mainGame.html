@@ -206,7 +206,7 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
         let targetCenterY = target.offsetHeight / 2;
         let distance = Math.sqrt(Math.pow(clickX - targetCenterX, 2) + Math.pow(clickY - targetCenterY, 2));
         let isBullseye = distance < 15;
-        let points = distance < 15 ? 2 : (distance < 30 ? 1 : 0);
+        let points = distance < 15 ? 2 : (distance < 30 ? 1 : 1);
         let clickTime = performance.now();
         let reactionTime = clickTime - targetTime;
         updateAverageReactionTime(reactionTime, true);
@@ -227,7 +227,6 @@ accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
 function resetTarget() {
     let maxX = gameContainer.clientWidth - target.clientWidth;
     let maxY = gameContainer.clientHeight - target.clientHeight;
-    console.log('Max X:', maxX, 'Max Y:', maxY); // Debug line to check max X and Y
     target.style.left = Math.floor(Math.random() * maxX) + "px";
     target.style.top = Math.floor(Math.random() * maxY) + "px";
     targetTime = performance.now();
@@ -511,7 +510,7 @@ const changeLogs = [
     "Cleaned up most of the code for better understanding.",
     "Added a new Themes menu so you're not stuck with 2 themes that can only be changed by entering dark/light mode",
     "Removed unused functions and variables, like powerups, which never made it into the game.",
-    
+    "The crosshair is now 100% accurate and you'll no longer miss for hitting the target."
 ];
 
 // Function to open change logs modal
