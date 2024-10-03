@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="CHRISTRAINER.ico">
+<title>CHRIS TRAINER</title>
+<style>
+    @keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+   body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.5s ease, color 0.5s ease; /* Transition for background color and text color */
+        user-select: none;
+    }
+    
+    #chris-image {
+    position: absolute;
+    display: none; /* Hide the CHRIS image initially */
+    z-index: 999; /* Ensure it's above other elements */
+    cursor: pointer; /* Show pointer cursor when hovering over CHRIS image */
+    transition: transform 0.2s ease; /* Smooth transition for bouncing effect */
+}
+
+    #game-container {
+    position: relative;
+    border: 2px solid #333;
+    background-color: #fff;
+    cursor: none; /* Hide default cursor inside game container */
+}
+#target {
+    display: none; /* Hide the target initially */
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background-color: transparent;
+}
+
+    .circle {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+    }
+    .inner-circle {
+        background-color: red;
+        width: 30%;
+        height: 30%;
+        top: 35%;
+        left: 35%;
+    }
+    .middle-circle {
+        background-color: white;
+        width: 50%;
+        height: 50%;
+        top: 25%;
+        left: 25%;
+    }
+    .outer-circle {
+        background-color: red;
+        width: 100%;
+        height: 100%;
+    }
+    #stats-container {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 10px;
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 5px;
+    }
+    #points-counter, #timer, #reaction-time, #accuracy {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+    #stats-container p {
+        margin: 0;
+    }
+    #stats {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20px;
+        text-align: center;
+        display: none;
+        background-color: rgba(255, 255, 255, 0.7);
+        padding: 20px;
+        border-radius: 10px;
+    }
+    #crosshair {
+    position: fixed;
+    width: 20px; /* Adjust crosshair size */
+    height: 20px; /* Adjust crosshair size */
+    background-color: transparent; /* Make crosshair transparent */
+    pointer-events: none; /* Ensure the crosshair doesn't interfere with mouse events */
+}
+
+#crosshair::before,
+#crosshair::after {
+    content: '';
+    position: absolute;
+    width: 2px; /* Adjust crosshair line thickness */
+    height: 20px; /* Adjust crosshair line length */
+    background-color: #000; /* Set crosshair color */
+    top: 50%;
+    left: 50%;
+    transform-origin: center;
+}
+
+#crosshair::before {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+#crosshair::after {
+    transform: translate(-50%, -50%);
+}
+
+
+
+    .game-over {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    .final-stats {
+        font-size: 18px;
+    }
+    .final-stats span {
+        font-weight: bold;
+    }
+    .mode-buttons {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+/* Button styles */
+.mode-buttons button {
+    margin: 0 5px;
+    padding: 10px 20px; /* Increased padding for better visual appearance */
+    font-size: 16px;
+    cursor: pointer;
+    position: relative; /* Required for positioning the pseudo-element */
+    overflow: hidden; /* Hide overflow of the pseudo-element */
+    border: 2px solid blue; /* Green border */
+    border-radius: 5px; /* Rounded corners */
+    background-color: #fff; /* White background color */
+    color: #000; /* Black text color */
+    transition: color 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
+}
+
+.mode-buttons button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%; /* Initially positioned outside the button */
+    width: 100%; /* Set width to 100% */
+    height: 100%;
+    background-color: rgba(76, 116, 175, 0.5); /* Semi-transparent green color */
+    transition: left 0.5s ease; /* Smooth transition for left position */
+}
+
+.mode-buttons button:hover::before {
+    left: 100%; /* Move the pseudo-element across the button */
+}
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Additional styles for the past games modal */
+    #past-games-modal {
+        display: none;
+    }
+    #size-modal {
+        display: none;
+        z-index: 2;
+    }
+
+    #size-modal .modal-content {
+        width: 300px;
+        z-index: 1;
+    }
+
+    #size-container button {
+        margin-top: 10px;
+    }
+    /* Dark Mode styles */
+    .dark-mode {
+    background-color: #333; /* Dark background color */
+    color: #fff; /* Light text color */
+    transition: background-color 0.5s ease, color 0.5s ease; /* Transition for background color and text color */
+    /* Add more styles as needed */
+}
+
+
+.dark-mode #game-container {
+    border-color: #fff; /* Border color for the game container */
+}
+
+.dark-mode .circle {
+    border-color: #fff; /* Border color for the circles */
+}
+
+.dark-mode #stats-container {
+    background-color: rgba(255, 255, 255, 0.3); /* Semi-transparent background for stats container */
+}
+
+/* Adjusted text color for better readability */
+.dark-mode p,
+.dark-mode button,
+.dark-mode .final-stats span {
+    color: #000; /* Dark text color */
+
+}
+
+</style>
+</head>
+<body>
+    <p id="solution"></p>
+    <div id="error-container"></div>
+    <div id="missed-click"></div>
+    
+    <audio id="hit-sound" src="hit_sound.mp3"></audio>
+    <audio id="miss-sound" src="miss_sound.mp3"></audio>
+<audio id="below-100-sound" src="below_100_sound.mp3"></audio>
+<audio id="above-100-sound" src="above_100_sound.mp3"></audio>
+<script>
+
+/*
+This script will find errors in your code when it executes and print them to the "error-container" div, so that you can troubleshoot your code more goodly
+*/
+
+        window.onerror = function (message, source, lineno, colno, error) {
+            const errorContainer = document.getElementById('error-container');
+            const errorDetails = `Message: ${message}\nSource: ${source}\nLine Number: ${lineno}${colno ? `\nColumn Number: ${colno}` : ''}${error ? `\nError: ${error}` : ''}`;
+            errorContainer.style.display = 'block';
+            errorContainertextContent = errorDetails;
+            return true;
+        };
+       
+</script>
+<!-- Size Modal -->
+<div id="size-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeSizeModal()">&times;</span>
+        <h2 style="color: black;">Change Size</h2>
+        <label for="width-input" style="color: black;">Width:</label>
+        <input type="number" id="width-input" placeholder="Enter width" value="500" min="300" max="800">
+        <div> <!-- Wrap "Height:" label and its input in a div -->
+            <label for="height-input" style="color: black;">Height:</label>
+            <input type="number" id="height-input" placeholder="Enter height" value="400" min="200" max="500">
+        </div>
+        <p><button onclick="changeSize()">Apply Size</button></p>
+    </div>
+</div>
+<!-- CHRIS image -->
+<img id="chris-image" src="CHRIS.png" alt="CHRIS Image">
+
+<!-- Background Music Modal -->
+<div id="bg-music-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeBgMusicModal()">&times;</span>
+        <h2 style="color: black;">Change Background Music</h2>
+        <div id="music-list"></div> <!-- Container for music buttons -->
+    </div>
+</div>
+
+
+<!-- Game Container -->
+<div id="game-container" style="width: 500px; height: 400px; position: relative;">
+    <!-- Replace the target with an image -->
+    <img id="target" src="CHRIS.png" alt="Target Image">
+</div>
+
+<audio id="clickSound">
+    <source src="boings.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+<audio id="hitWallSound">
+    <source src="boinger.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+  
+    <div id="crosshair"></div>
+
+    <div id="stats-container">
+        <p id="points-counter">Score: <span id="score">0</span></p>
+        <p id="timer">Time left: <span id="time-left">60</span> sec</p>
+        <p id="reaction-time">Average reaction time: <span id="average-reaction-time">---</span> ms</p>
+        <p id="accuracy">Accuracy: <span id="accuracy-display">100%</span></p>
+    </div>
+
+    <div id="stats">
+        <p class="game-over">Game Over!</p>
+        <p class="final-stats">Accuracy: <span id="final-accuracy">---</span>%</p>
+        <p class="final-stats">Reaction time: <span id="final-reaction-time">---</span> ms</p>
+        <p class="final-stats">Hits: <span id="final-hits">---</span></p>
+        <p class="final-stats">Misses: <span id="final-misses">---</span></p>
+        <p class="final-stats">Final Score: <span id="final-score">---</span></p>
+        <p class="final-stats">Hit to Miss Ratio: <span id="final-hit-to-miss">---</span></p>
+    </div>
+
+<!-- Tutorial Modal -->
+<div id="tutorial-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTutorial()">&times;</span>
+        <h2 style="color: darkred; text-decoration: underline; font-family: Comic Sans MS;">How to Play (or Not)</h2>
+        <p>Greetings, hapless victim! You've unwittingly stumbled into the realm of... wait for it... THE MOST MEDIOCRE CHRIS TRAINER EVER!!! Brace yourself for a mediocre experience, or don't, it's up to you, really.</p>
+        <p>Your menial task, should you deign to accept it, is to aimlessly click on Chris's face. Why? Who knows! Click on his face, click elsewhere, click everywhere! It doesn't matter, nothing matters!</p>
+        <p>Click on Chris's face to earn points. Score 2 points if you hit his face dead center, or don't, who cares? Even if you miss by a mile, you'll still get 1 point. Yay, I guess?</p>
+        <p>But beware! If you accidentally click outside Chris's face, you'll suffer the dire consequences of... absolutely nothing! Your point will be deducted. Or not. Honestly, who's keeping score?</p>
+        <p>Alright, you've got an arbitrarily chosen amount of time to rack up points that no one cares about. Good luck, I suppose. Or not. It doesn't really matter. Just click stuff. Whatever.</p>
+    </div>
+</div>
+
+
+
+<div id="settings-modal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeSettings()">&times;</span>
+        <h2 style="color: black;">Settings</h2>
+        <!--<button onclick="enableHighQualityMode()">High Quality mode</button>-->
+        <button onclick="toggleDarkMode()">Dark Mode</button>
+        <button onclick="changeBackgroundMusic()">Change Background Music</button>
+        <button onclick="stopBackgroundMusic()">Stop Music</button>
+        <button onclick="openSizeModal()">Change Size</button>
+       <!-- <button onclick="firstVersion()">Prototype</button>-->
+    </div>
+</div>
+
+
+
+    <div class="mode-buttons">
+        <button onclick="startGame()">Start</button>
+        <button onclick="showTutorial()">Tutorial</button>
+     <!--<button onclick="showPastGames()">Past Games</button>-->
+        <button onclick="openSettings()">Settings</button>
+    </div>
+
+    <!--powerup messages-->
+    <div id="powerUpMessage"></div>
+
+    <script>
+   // Initialize variables
+   let score = 0;
+    let target = document.getElementById('target');
+    let gameContainer = document.getElementById('game-container');
+    let scoreDisplay = document.getElementById('score');
+    let averageReactionTimeDisplay = document.getElementById('average-reaction-time');
+    let accuracyDisplay = document.getElementById('accuracy-display');
+    let statsContainer = document.getElementById('stats-container');
+    let timerDisplay = document.getElementById('time-left');
+    let timerInterval;
+    let totalReactionTime = 0;
+    let reactionCount = 0;
+    let totalClicks = 0;
+    let totalHits = 0;
+    let targetTime = performance.now();
+    let isGameStarted = false;
+
+    function changeSize() {
+    var width = document.getElementById("width-input").value;
+    var height = document.getElementById("height-input").value;
+    width = Math.max(300, Math.min(800, width));
+    height = Math.max(200, Math.min(500, height));
+    document.getElementById("game-container").style.width = width + "px";
+    document.getElementById("game-container").style.height = height + "px";
+}
+
+
+    // Update score function
+    function updateScore(points) {
+        score += points;
+        scoreDisplay.textContent = score;
+    }
+
+    // Crosshair
+    document.addEventListener('mousemove', function(event) {
+        let crosshair = document.getElementById('crosshair');
+        if (isInsideGameContainer(event.clientX, event.clientY)) {
+            gameContainer.style.cursor = 'none';
+            crosshair.style.display = 'block'; 
+            crosshair.style.left = event.clientX + 'px';
+            crosshair.style.top = event.clientY + 'px';
+        } else {
+            gameContainer.style.cursor = 'auto';
+            crosshair.style.display = 'none';
+        }
+    });
+
+
+    // Check if mouse is inside the game container
+    function isInsideGameContainer(x, y) {
+        let rect = gameContainer.getBoundingClientRect();
+        return (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+    }
+
+    // Update average reaction time and accuracy function
+    function updateAverageReactionTime(reactionTime, hit) {
+        totalReactionTime += reactionTime;
+        let averageReactionTime = totalHits !== 0 ? totalReactionTime / totalHits : 0;
+        averageReactionTimeDisplay.textContent = averageReactionTime.toFixed(2);
+
+        if (hit) {
+            totalHits++;
+        }
+        totalClicks++;
+        let accuracy = totalHits !== 0 ? (totalHits / totalClicks) : 0;
+accuracyDisplay.textContent = (accuracy * 100).toFixed(2) + "%";
+
+    }
+    
+
+    // Function to calculate Hit to Miss ratio
+    function calculateHitToMissRatio() {
+        let hitToMissRatio = totalHits + " : " + (totalClicks - totalHits);
+        return hitToMissRatio;
+    }
+
+// Update endGame() function
+function endGame() {
+    clearInterval(timerInterval); // Stop the timer
+    isGameStarted = false;
+    // Remove click event listeners
+    target.removeEventListener('click', targetClickHandler);
+    gameContainer.removeEventListener('click', gameContainerClickHandler);
+
+    // Hide target
+    target.style.display = 'none';
+
+    // Hide stats container
+    statsContainer.style.display = 'none';
+
+    // Show game over stats
+    stats.style.display = 'block';
+
+    // Calculate accuracy
+    let accuracy = (totalHits / totalClicks) * 100;
+
+    // Save game data
+    saveGameData(score, accuracy.toFixed(2), averageReactionTimeDisplay.textContent, totalHits, totalClicks);
+
+    // Display final stats
+    document.getElementById('final-accuracy').textContent = accuracy.toFixed(2);
+    document.getElementById('final-reaction-time').textContent = averageReactionTimeDisplay.textContent;
+    document.getElementById('final-hits').textContent = totalHits;
+    document.getElementById('final-misses').textContent = totalClicks - totalHits;
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('final-hit-to-miss').textContent = calculateHitToMissRatio();
+
+    // Play audio based on final score
+    if (score < 100) {
+        document.getElementById('below-100-sound').play();
+    } else {
+        document.getElementById('above-100-sound').play();
+    }
+}
+
+// Preload multiple instances of the hit sound
+let hitSounds = [];
+for (let i = 0; i < 5; i++) {
+    let hitSound = new Audio('hit_sound.mp3'); // Adjust the path to your hit sound file
+    hitSounds.push(hitSound);
+}
+
+// Click event for target
+function targetClickHandler(event) {
+    let clickX = event.clientX - target.getBoundingClientRect().left;
+    let clickY = event.clientY - target.getBoundingClientRect().top;
+    let targetCenterX = target.offsetWidth / 2;
+    let targetCenterY = target.offsetHeight / 2;
+    let distance = Math.sqrt(Math.pow(clickX - targetCenterX, 2) + Math.pow(clickY - targetCenterY, 2));
+    let isBullseye = distance < 15;
+    let points = isBullseye ? 2 : 1;
+    let clickTime = performance.now();
+    let reactionTime = clickTime - targetTime;
+    updateAverageReactionTime(reactionTime, true);
+    updateScore(points);
+    resetTarget();
+
+    // Find an available instance of the hit sound and play it
+    let availableSound = hitSounds.find(sound => sound.paused || sound.ended);
+    if (availableSound) {
+        availableSound.currentTime = 0; // Reset playback to the beginning
+        availableSound.play();
+    }
+}
+// Preload multiple instances of the miss sound
+let missSounds = [];
+for (let i = 0; i < 5; i++) {
+    let missSound = new Audio('miss_sound.mp3'); // Adjust the path to your miss sound file
+    missSounds.push(missSound);
+}
+
+// Click event for game container (missed click)
+function gameContainerClickHandler(event) {
+    if (isGameStarted && event.target === gameContainer) {
+        updateScore(-1); // Lower score if clicked outside the target
+        updateAverageReactionTime(0, false);
+        
+        // Find an available instance of the miss sound and play it
+        let availableSound = missSounds.find(sound => sound.paused || sound.ended);
+        if (availableSound) {
+            availableSound.currentTime = 0; // Reset playback to the beginning
+            availableSound.play();
+        }
+    }
+}
+           // Function to display the red X at the specified coordinates
+           function displayMissedClick(x, y) {
+            let missedClick = document.getElementById('missed-click');
+            missedClick.style.position = 'absolute';
+            missedClick.style.left = x + 'px';
+            missedClick.style.top = y + 'px';
+            missedClick.innerHTML = 'X';
+            missedClick.style.color = 'red';
+            missedClick.style.fontSize = '24px';
+            missedClick.style.transition = 'opacity 1s';
+            // Fade out after 3 seconds
+            setTimeout(() => {
+                missedClick.style.opacity = '0';
+            }, 3000);
+            }
+        // Event listener for clicks on the game container
+        document.getElementById('game-container').addEventListener('click', function(event) {
+            // Check if the game is currently running
+            if (isGameStarted) {
+                // Check if the click is outside the target area
+                if (event.target === gameContainer) {
+                    // Display the red X at the click coordinates
+                    displayMissedClick(event.clientX, event.clientY);
+                    // Update the score (deduct 1 point for a missed click)
+                    updateScore(-1);
+                    // Update the average reaction time and accuracy
+                    updateAverageReactionTime(0, false);
+                }
+            }
+        });
+
+// reset target position
+function resetTarget() {
+    let maxX = gameContainer.clientWidth - target.clientWidth;
+    let maxY = gameContainer.clientHeight - target.clientHeight;
+    console.log('Max X:', maxX, 'Max Y:', maxY); // Debug line to check max X and Y
+    target.style.left = Math.floor(Math.random() * maxX) + "px";
+    target.style.top = Math.floor(Math.random() * maxY) + "px";
+    targetTime = performance.now(); // Store current time
+}
+
+// Function to start the game
+function startGame() {
+    if (!isGameStarted) {
+        isGameStarted = true;
+        score = 0;
+        scoreDisplay.textContent = score;
+        totalReactionTime = 0;
+        reactionCount = 0;
+        totalClicks = 0;
+        totalHits = 0;
+        timerDisplay.textContent = '60'; // Set initial timer value
+        timerInterval = setInterval(updateTimer, 1000); // Start the timer
+        statsContainer.style.display = 'block'; // Show stats container
+        stats.style.display = 'none'; // Hide the stats
+        target.style.display = 'block'; // Show the target
+        target.addEventListener('click', targetClickHandler); // Add click event listener to target
+        gameContainer.addEventListener('click', gameContainerClickHandler); // Add click event listener to game container
+        resetTarget(); // Reset the target position
+    }
+}
+    // Function to update the timer
+    function updateTimer() {
+        let timeLeft = parseInt(timerDisplay.textContent);
+        timeLeft--;
+        if (timeLeft >= 0) {
+            timerDisplay.textContent = timeLeft.toString();
+        } else {
+            stats.style.display = 'none';
+            endGame();
+        }
+    }
+
+    // Function to show tutorial modal
+    function showTutorial() {
+        let modal = document.getElementById("tutorial-modal");
+        modal.style.display = "block";
+    }
+
+    // Function to close tutorial modal
+    function closeTutorial() {
+        let modal = document.getElementById("tutorial-modal");
+        modal.style.display = "none";
+    }
+
+    function toggleDarkMode() {
+    // Toggle the 'dark-mode' class on the body element
+    document.body.classList.toggle('dark-mode');
+
+    // Get the Dark Mode button element inside the settings modal
+    let darkModeButton = document.querySelector('#settings-modal button:nth-of-type(1)'); // Selecting the second button in the settings modal
+
+    // Check if Dark Mode is enabled
+    if (document.body.classList.contains('dark-mode')) {
+        // Set the button text to Light Mode
+        darkModeButton.textContent = 'Light Mode';
+    } else {
+        // Set the button text to Dark Mode
+        darkModeButton.textContent = 'Dark Mode';
+    }
+}
+
+
+
+
+
+// Call the setInitialButtonText function when the page loads
+window.onload = setInitialButtonText;
+
+
+
+    // End game function
+    function endGame() {
+        clearInterval(timerInterval); // Stop the timer
+        isGameStarted = false;
+        // Remove click event listeners
+        target.removeEventListener('click', targetClickHandler);
+        gameContainer.removeEventListener('click', gameContainerClickHandler);
+
+        // Hide target
+        target.style.display = 'none';
+
+        // Hide stats container
+        statsContainer.style.display = 'none';
+
+        // Show game over stats
+        stats.style.display = 'block';
+
+        // Calculate accuracy
+        let accuracy = (totalHits / totalClicks) * 100;
+
+        // Save game data
+        saveGameData(score, accuracy.toFixed(2), averageReactionTimeDisplay.textContent, totalHits, totalClicks);
+
+        // Display final stats
+        document.getElementById('final-accuracy').textContent = accuracy.toFixed(2);
+        document.getElementById('final-reaction-time').textContent = averageReactionTimeDisplay.textContent;
+        document.getElementById('final-hits').textContent = totalHits;
+        document.getElementById('final-misses').textContent = totalClicks - totalHits;
+        document.getElementById('final-score').textContent = score;
+        document.getElementById('final-hit-to-miss').textContent = calculateHitToMissRatio();
+    }
+
+    
+// Function to display past games
+function displayPastGames() {
+    let pastGamesList = document.getElementById("past-games-list");
+    // Retrieve past games data from local storage
+    let pastGamesData = JSON.parse(localStorage.getItem("pastGames")) || [];
+    // Clear past games list before populating with new data
+    pastGamesList.innerHTML = "";
+
+    // Display each past game entry
+    pastGamesData.forEach(game => {
+        let gameEntry = document.createElement("div");
+        gameEntry.textContent = `Score: ${game.score}, Accuracy: ${game.accuracy}%, Reaction Time: ${game.reactionTime}ms, Hits: ${game.hits}, Misses: ${game.misses}`;
+        pastGamesList.appendChild(gameEntry);
+    });
+}
+
+ function saveGameData(score, accuracy, reactionTime, hits, misses) {
+    let pastGamesData = JSON.parse(localStorage.getItem("pastGames")) || [];
+    let gameData = {
+        score: score,
+        accuracy: accuracy,
+        reactionTime: reactionTime,
+        hits: hits,
+        misses: misses
+    };
+    pastGamesData.push(gameData);
+    localStorage.setItem("pastGames", JSON.stringify(pastGamesData));
+}
+// saves your past games data into the "Past Games" button
+window.onload = function() {
+    displayPastGames();
+};
+        // Function to open the size modal
+        function openSizeModal() {
+            let sizeModal = document.getElementById("size-modal");
+            sizeModal.style.display = "block";
+            settingsIsOpen = false;
+        }
+
+        // Function to close the size modal
+        function closeSizeModal() {
+            let sizeModal = document.getElementById("size-modal");
+            sizeModal.style.display = "none";
+            settingsIsOpen = true;
+        }
+    </script>
+
+<script>
+    // Function to open the settings modal
+    let settingsIsOpen = false;
+    function openSettings() {
+        settingsIsOpen = true;
+        let settingsModal = document.getElementById("settings-modal");
+        settingsModal.style.display = "block";
+        // hide crosshair
+        document.getElementById('crosshair').style.display = 'none';
+    }
+
+    // Function to close the settings modal
+    function closeSettings() {
+        let settingsModal = document.getElementById("settings-modal");
+        settingsModal.style.display = "none";
+        settingsIsOpen = false;
+        // show crosshair
+        document.getElementById('crosshair').style.display = 'block';
+    }
+
+    // Function to enable High Quality mode
+    function enableHighQualityMode() {
+        // Navigate to the High Quality mode page
+        window.location.href = "./highquality/highqualitymode.html";
+    }
+
+    // function to go to first version
+    function firstVersion() {
+        // goes to first version
+        window.location.href = "./firstaimtrainer.html"
+    }
+
+    let backgroundMusics = [
+    "./aimtrainer2.mp3",
+    "./highquality/highqualitymusic.mp3"
+];
+
+let currentMusicIndex = 0; // Keep track of the index of the current music
+
+let backgroundMusic = null; // Variable to store the current background music
+
+function changeBackgroundMusic() {
+    // Check if there is already background music playing
+    if (backgroundMusic !== null) {
+        // Pause the current background music
+        backgroundMusic.pause();
+        backgroundMusic.currentTime = 0; // Reset the playback to the beginning
+    }
+    // Create a new Audio object for the next music in the array
+    backgroundMusic = new Audio(backgroundMusics[currentMusicIndex]);
+    // Enable looping for the background music
+    backgroundMusic.loop = true;
+    // Play the background music
+    backgroundMusic.play();
+    // Increment the current music index
+    currentMusicIndex = (currentMusicIndex + 1) % backgroundMusics.length;
+}
+// Function to stop the background music
+function stopBackgroundMusic() {
+    if (backgroundMusic !== null) {
+        backgroundMusic.pause(); // Pause the background music
+        backgroundMusic.currentTime = 0; // Reset the playback to the beginning
+    }
+}
+       // Store the CHRIS image element
+       let chrisImage = document.getElementById('chris-image');
+        // Store the audio elements
+        let clickSound = document.getElementById('clickSound');
+        let hitWallSound = document.getElementById('hitWallSound');
+
+        // Function to play click sound effect
+        function playClickSound() {
+            clickSound.currentTime = 0; // Rewind the sound to the beginning
+            clickSound.play(); // Play the sound
+        }
+
+        // Function to play wall hit sound effect
+        function playHitWallSound() {
+            hitWallSound.currentTime = 0; // Rewind the sound to the beginning
+            hitWallSound.play(); // Play the sound
+        }
+
+        // Function to start moving the CHRIS image
+        function startMovingChris() {
+            // Show the CHRIS image
+            chrisImage.style.display = 'block';
+
+            // Generate random coordinates within the viewport
+            let maxX = window.innerWidth - chrisImage.clientWidth;
+            let maxY = window.innerHeight - chrisImage.clientHeight;
+            let randomX = Math.floor(Math.random() * maxX);
+            let randomY = Math.floor(Math.random() * maxY);
+
+            // Set the CHRIS image position to the random coordinates
+            chrisImage.style.left = randomX + 'px';
+            chrisImage.style.top = randomY + 'px';
+
+            // Generate random velocity components
+            let velX = Math.random() * 10 - 5; // Random number between -5 and 5
+            let velY = Math.random() * 10 - 5; // Random number between -5 and 5
+
+            // Function to update CHRIS image position and velocity
+            function updatePosition() {
+                // Get current position
+                let posX = parseFloat(chrisImage.style.left);
+                let posY = parseFloat(chrisImage.style.top);
+
+                // Update position based on velocity
+                posX += velX;
+                posY += velY;
+
+                // Bounce off walls and play sound effect
+                if (posX < 0 || posX > maxX) {
+                    velX = -velX; // Reverse horizontal velocity
+                    playHitWallSound(); // Play the sound effect
+                }
+                if (posY < 0 || posY > maxY) {
+                    velY = -velY; // Reverse vertical velocity
+                    playHitWallSound(); // Play the sound effect
+                }
+
+                // Update CHRIS image position
+                chrisImage.style.left = posX + 'px';
+                chrisImage.style.top = posY + 'px';
+
+                // Apply bouncing effect using CSS transform
+                chrisImage.style.transform = 'scale(1)'; // Scale up
+                setTimeout(() => {
+                    chrisImage.style.transform = 'scale(1.1)'; // Scale down after a short delay
+                }, 200);
+
+                // Request animation frame to update position recursively
+                requestAnimationFrame(updatePosition);
+            }
+
+            // Start updating CHRIS image position
+            updatePosition();
+        }
+
+        // Event listener for keydown event
+        document.addEventListener('keydown', function(event) {
+            // Check if the typed word is "chris"
+            if (event.key.toLowerCase() === 'c') {
+                // Wait for the next keypress to check if it forms "chris"
+                document.addEventListener('keydown', function(event2) {
+                    if (event2.key.toLowerCase() === 'h') {
+                        document.addEventListener('keydown', function(event3) {
+                            if (event3.key.toLowerCase() === 'r') {
+                                document.addEventListener('keydown', function(event4) {
+                                    if (event4.key.toLowerCase() === 'i') {
+                                        document.addEventListener('keydown', function(event5) {
+                                            if (event5.key.toLowerCase() === 's') {
+                                                // Start moving the CHRIS image
+                                                startMovingChris();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Event listener for click event on CHRIS image
+        chrisImage.addEventListener('click', function() {
+            // Play the sound effect
+            playClickSound();
+
+            // Apply CSS animation to make the image spin
+            chrisImage.style.animation = 'spin 1s linear infinite'; // Adjust duration and other properties as needed
+            setTimeout(() => {
+                chrisImage.style.animation = '';
+            }, 3000); // 1s * 3 = 3000ms
+        });
+    </script>
+</body>
+</html>
